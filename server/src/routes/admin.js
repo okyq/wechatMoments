@@ -180,7 +180,7 @@ router.get('/settings', (req, res) => {
 router.put('/settings', (req, res) => {
   const body = req.body || {};
   const upd = db.prepare('UPDATE settings SET value = ? WHERE key = ?');
-  for (const key of ['site_title', 'site_desc', 'site_avatar', 'site_background', 'site_theme', 'admin_theme', 'post_preview_length', 'post_page_size']) {
+  for (const key of ['site_title', 'site_desc', 'site_avatar', 'site_background', 'site_favicon', 'site_theme', 'admin_theme', 'post_preview_length', 'post_page_size']) {
     if (body[key] !== undefined) upd.run(String(body[key]), key);
   }
   // 后台路径校验：仅字母数字下划线连字符（2-30 位），防止路径注入

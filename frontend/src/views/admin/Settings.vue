@@ -31,6 +31,15 @@
               <img v-if="form.site_background" :src="form.site_background" class="thumb" alt="" referrerpolicy="no-referrer" />
             </div>
           </label>
+          <label class="field">
+            <span class="field-label">站点图标（浏览器地址栏小图标，留空则用头像）</span>
+            <div class="file-row">
+              <input v-model="form.site_favicon" class="input" placeholder="图片 URL 或上传" />
+              <button class="btn btn-plain" type="button" @click="pickFile('favicon')">上传</button>
+              <img v-if="form.site_favicon" :src="form.site_favicon" class="thumb thumb-round" alt="" referrerpolicy="no-referrer" />
+              <img v-else-if="form.site_avatar" :src="form.site_avatar" class="thumb thumb-round" alt="" referrerpolicy="no-referrer" />
+            </div>
+          </label>
           <button class="btn btn-primary" :disabled="saving" @click="saveSettings">
             {{ saving ? '保存中…' : '保存设置' }}
           </button>
@@ -176,6 +185,7 @@ const form = ref({
   site_desc: '',
   site_avatar: '',
   site_background: '',
+  site_favicon: '',
   site_theme: 'wechat',
   admin_theme: 'wechat',
   post_preview_length: 500,
@@ -204,6 +214,7 @@ onMounted(async () => {
     site_desc: s.site_desc,
     site_avatar: s.site_avatar,
     site_background: s.site_background,
+    site_favicon: s.site_favicon || '',
     site_theme: s.site_theme || 'wechat',
     admin_theme: s.admin_theme || 'wechat',
     post_preview_length: parseInt(s.post_preview_length, 10) || 500,
@@ -226,7 +237,8 @@ async function onFilePicked(e) {
   try {
     const { url } = await uploadImage(file);
     if (fileTarget === 'avatar') form.value.site_avatar = url;
-    else form.value.site_background = url;
+    else if (fileTarget === 'background') form.value.site_background = url;
+    else if (fileTarget === 'favicon') form.value.site_favicon = url;
     // 上传成功后自动保存，避免用户忘记点保存
     await saveSettings();
   } catch (err) {
@@ -362,6 +374,9 @@ async function changePwd() {
   border-radius: 6px;
   border: 1px solid var(--border);
   flex-shrink: 0;
+}
+.thumb-round {
+  border-radius: 50%;
 }
 .token-box {
   display: flex;

@@ -10,7 +10,7 @@ import './styles/main.css';
 applyTheme(getStoredTheme('site') || 'wechat', 'site', false);
 
 /**
- * 启动引导：先读取站点配置（含后台路径），再注册路由挂载应用。
+ * 启动引导：先读取站点配置（含后台路径、favicon），再注册路由挂载应用。
  * 这样后台访问路径可以在「站点设置」中自定义，前台无后台入口按钮。
  */
 async function bootstrap() {
@@ -18,8 +18,19 @@ async function bootstrap() {
   try {
     const site = await getSite();
     if (site.admin_path) adminPath = site.admin_path;
+    // 动态设置浏览器地址栏图标（自定义图标 → 站点头像 → 后端默认）
+    const favicon = site.site_favicon || site.site_avatar;
+    if (favicon) {
+      let link = document.querySelector('link[rel="icon"]');
+      if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = favicon;
+    }
   } catch (e) {
-    /* 后端不可用时使用默认路径 */
+    /* 后端不可用时使用默认配置 */
   }
   setAdminPath(adminPath);
 

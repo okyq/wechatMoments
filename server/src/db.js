@@ -74,6 +74,7 @@ const DEFAULT_SETTINGS = {
   site_desc: '记录生活与思考',
   site_avatar: '',
   site_background: '',
+  site_favicon: '',          // 浏览器地址栏图标（留空则用站点头像，再为空则用内置图标）
   site_theme: 'wechat',        // 前台默认主题
   admin_theme: 'wechat',       // 后台默认主题
   post_preview_length: '500',  // 朋友圈内容展示最大字符数，超长显示"查看详情"

@@ -4,7 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const fs = require('fs');
 
-require('./db'); // 初始化数据库与种子数据
+const db = require('./db'); // 初始化数据库与种子数据
 
 const seo = require('./prerender');
 
@@ -36,6 +36,30 @@ app.use('/api', (req, res) => res.status(404).json({ error: 'Not Found' }));
 // SEO：sitemap / robots（所有请求可访问）
 app.get('/sitemap.xml', seo.sitemap);
 app.get('/robots.txt', seo.robots);
+
+// 动态 favicon：优先站点自定义图标 → 站点头像 → 内置默认图标
+const FAVICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+<stop offset="0" stop-color="#07c160"/><stop offset="1" stop-color="#10aeff"/>
+</linearGradient></defs>
+<rect width="64" height="64" rx="14" fill="url(#g)"/>
+<circle cx="32" cy="24" r="8" fill="#fff"/>
+<path d="M14 46c2-8 9-12 18-12s16 4 18 12" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+</svg>`;
+app.get('/favicon.ico', (req, res) => {
+  const rows = db.prepare('SELECT key, value FROM settings').all();
+  const s = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  const url = s.site_favicon || s.site_avatar || '';
+  if (url.startsWith('/uploads/')) {
+    const file = path.join(__dirname, '..', '..', 'uploads', path.basename(url));
+    if (fs.existsSync(file)) {
+      const ext = path.extname(file).toLowerCase();
+      res.type(ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 'image/png').sendFile(file);
+      return;
+    }
+  }
+  res.type('image/svg+xml').send(FAVICON_SVG);
+});
 
 // 爬虫预渲染（仅爬虫 UA 命中，浏览器不受影响）
 app.use(seo.prerender);
