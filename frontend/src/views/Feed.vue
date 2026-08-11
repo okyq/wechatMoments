@@ -1,5 +1,37 @@
 <template>
-  <div class="feed-page">
+  <!-- 加载骨架屏：数据未到位时不渲染默认值，避免闪烁 -->
+  <div v-if="!ready" class="feed-page">
+    <div class="feed-banner skeleton-banner">
+      <div class="skeleton-block skeleton-banner-bg"></div>
+      <div class="skeleton-block skeleton-banner-name"></div>
+      <div class="skeleton-block skeleton-banner-avatar"></div>
+    </div>
+    <div class="feed-filters">
+      <div class="skeleton-block skeleton-search"></div>
+      <div class="skeleton-block skeleton-select"></div>
+      <div class="skeleton-block skeleton-select"></div>
+    </div>
+    <main class="feed-list">
+      <div v-for="i in 3" :key="i" class="moment-card skeleton-card">
+        <div class="skeleton-row">
+          <div class="skeleton-block skeleton-avatar-sm"></div>
+          <div class="skeleton-col">
+            <div class="skeleton-block skeleton-line w60"></div>
+            <div class="skeleton-block skeleton-line w30"></div>
+          </div>
+        </div>
+        <div class="skeleton-block skeleton-line w90"></div>
+        <div class="skeleton-block skeleton-line w80"></div>
+        <div class="skeleton-block skeleton-line w95"></div>
+        <div class="skeleton-grid">
+          <div v-for="j in 4" :key="j" class="skeleton-block skeleton-img"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- 真实内容 -->
+  <div v-else class="feed-page">
     <!-- 顶部个人横幅（仿朋友圈，圆角） -->
     <header class="feed-banner">
       <div class="banner-bg" :style="bannerStyle"></div>
@@ -90,6 +122,9 @@ import { applyTheme, hasStoredTheme } from '../utils/theme';
 
 const router = useRouter();
 
+// 首屏是否加载完成（完成前显示骨架屏，避免默认数据闪现）
+const ready = ref(false);
+
 // 站点信息
 const site = ref({});
 const initial = computed(() => initialOf(site.value.site_title));
@@ -163,23 +198,21 @@ async function resetAndLoad() {
 
 onMounted(async () => {
   document.title = '我的朋友圈';
-  try {
-    site.value = await getSite();
+  // 站点信息、筛选选项、首屏文章并行加载，一次到位
+  const [siteRes, filterRes] = await Promise.allSettled([getSite(), getFilters()]);
+  if (siteRes.status === 'fulfilled') {
+    site.value = siteRes.value;
     document.title = site.value.site_title || '我的朋友圈';
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute('content', site.value.site_desc || '');
     // 访客未手动选择主题时，应用后台配置的默认主题
     if (!hasStoredTheme('site')) applyTheme(site.value.site_theme || 'wechat', 'site', false);
-  } catch (e) {
-    /* 站点信息加载失败时使用默认值 */
   }
-  try {
-    filterOptions.value = await getFilters();
-  } catch (e) {
-    /* 筛选选项加载失败时保持为空 */
-  }
+  if (filterRes.status === 'fulfilled') filterOptions.value = filterRes.value;
   await loadPage(1);
+  // 全部数据到位后再显示真实内容
+  ready.value = true;
 });
 
 onBeforeUnmount(() => {
@@ -364,5 +397,99 @@ onBeforeUnmount(() => {
 .feed-pager-info {
   font-size: 13px;
   color: var(--text-light);
+}
+
+/* ============ 骨架屏 ============ */
+.skeleton-block {
+  background: linear-gradient(
+    90deg,
+    var(--border-light) 25%,
+    var(--surface-2) 37%,
+    var(--border-light) 63%
+  );
+  background-size: 400% 100%;
+  animation: skeleton-shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+@keyframes skeleton-shimmer {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0 50%; }
+}
+.skeleton-banner {
+  height: 300px;
+  position: relative;
+}
+.skeleton-banner-bg {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius);
+}
+.skeleton-banner-name {
+  position: absolute;
+  left: 20px;
+  bottom: 92px;
+  width: 140px;
+  height: 26px;
+}
+.skeleton-banner-avatar {
+  position: absolute;
+  right: 20px;
+  bottom: -32px;
+  width: 76px;
+  height: 76px;
+  border-radius: 8px;
+  border: 3px solid var(--card);
+}
+.skeleton-search {
+  flex: 1;
+  min-width: 180px;
+  height: 36px;
+  border-radius: 20px;
+}
+.skeleton-select {
+  width: 110px;
+  height: 36px;
+  border-radius: 20px;
+}
+.skeleton-card {
+  min-height: 200px;
+}
+.skeleton-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.skeleton-avatar-sm {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.skeleton-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.skeleton-line {
+  height: 14px;
+}
+.skeleton-line + .skeleton-line {
+  margin-top: 10px;
+}
+.w30 { width: 30%; }
+.w60 { width: 60%; }
+.w80 { width: 80%; }
+.w90 { width: 90%; }
+.w95 { width: 95%; }
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-top: 12px;
+}
+.skeleton-img {
+  aspect-ratio: 1 / 1;
+  border-radius: 4px;
 }
 </style>
