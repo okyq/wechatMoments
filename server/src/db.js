@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS posts (
   location   TEXT NOT NULL DEFAULT '',
   slug       TEXT NOT NULL UNIQUE,
   status     INTEGER NOT NULL DEFAULT 1,
+  is_pinned  INTEGER NOT NULL DEFAULT 0,
   like_count INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL,
   updated_at TEXT NOT NULL
@@ -56,6 +57,13 @@ CREATE TABLE IF NOT EXISTS comments (
 
 CREATE INDEX IF NOT EXISTS idx_comments_post ON comments(post_id);
 `);
+
+// 已有数据库迁移：补充新字段（is_pinned 置顶）
+const postCols = db.prepare('PRAGMA table_info(posts)').all().map((c) => c.name);
+if (!postCols.includes('is_pinned')) {
+  db.exec('ALTER TABLE posts ADD COLUMN is_pinned INTEGER NOT NULL DEFAULT 0');
+  console.log('[db] 已迁移：posts 表新增 is_pinned 字段');
+}
 
 // 首次启动创建管理员账号
 const adminCount = db.prepare('SELECT COUNT(*) AS c FROM admin').get().c;

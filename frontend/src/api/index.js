@@ -39,6 +39,7 @@ export const adminPost = (id) => http.get(`/admin/posts/${id}`);
 export const createPost = (data) => http.post('/admin/posts', data);
 export const updatePost = (id, data) => http.put(`/admin/posts/${id}`, data);
 export const setPostStatus = (id, status) => http.put(`/admin/posts/${id}/status`, { status });
+export const setPostPinned = (id, isPinned) => http.put(`/admin/posts/${id}/pin`, { is_pinned: isPinned });
 export const deletePost = (id) => http.delete(`/admin/posts/${id}`);
 export const adminComments = (params) => http.get('/admin/comments', { params });
 export const deleteComment = (id) => http.delete(`/admin/comments/${id}`);

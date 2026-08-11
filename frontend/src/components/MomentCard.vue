@@ -11,7 +11,10 @@
       />
       <span v-else class="avatar-fallback mc-avatar">{{ initial }}</span>
       <div class="mc-meta">
-        <div class="mc-nickname">{{ site.site_title || '我' }}</div>
+        <div class="mc-nickname">
+          {{ site.site_title || '我' }}
+          <span v-if="post.is_pinned" class="mc-pin-badge">📌 置顶</span>
+        </div>
         <div class="mc-time">
           <template v-if="updated">
             更新于 {{ relativeTime(post.updated_at) }}
@@ -221,6 +224,18 @@ const viewerIndex = ref(null);
   font-size: 16px;
   font-weight: 600;
   color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mc-pin-badge {
+  font-size: 11px;
+  font-weight: 500;
+  background: #fff6e0;
+  color: #d48806;
+  padding: 1px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
 }
 .mc-time {
   font-size: 12px;

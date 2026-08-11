@@ -23,6 +23,7 @@ function toPublic(row) {
     content: row.content,
     excerpt: excerpt(row.content, 160),
     truncated: excerpt(row.content, 160).endsWith('…'),
+    is_pinned: !!row.is_pinned,
     like_count: row.like_count,
     comment_count: row.comment_count,
     created_at: row.created_at,
@@ -52,14 +53,14 @@ function buildWhere(query) {
   return { whereSql: 'WHERE ' + where.join(' AND '), args };
 }
 
-// 已发布文章分页列表（支持 search/tag/month 筛选，按更新时间排序）
+// 已发布文章分页列表（支持 search/tag/month 筛选；置顶优先，再按更新时间排序）
 router.get('/', (req, res) => {
   const page = Math.max(1, parseInt(req.query.page) || 1);
   const pageSize = Math.min(20, Math.max(1, parseInt(req.query.pageSize) || 10));
   const { whereSql, args } = buildWhere(req.query);
   const total = db.prepare(`SELECT COUNT(*) AS c FROM posts p ${whereSql}`).get(...args).c;
   const rows = db
-    .prepare(`${BASE_SQL} ${whereSql} ORDER BY p.updated_at DESC, p.id DESC LIMIT ? OFFSET ?`)
+    .prepare(`${BASE_SQL} ${whereSql} ORDER BY p.is_pinned DESC, p.updated_at DESC, p.id DESC LIMIT ? OFFSET ?`)
     .all(...args, pageSize, (page - 1) * pageSize);
   res.json({ list: rows.map(toPublic), page, pageSize, total });
 });

@@ -62,12 +62,12 @@ router.get('/posts', (req, res) => {
   const total = db.prepare(`SELECT COUNT(*) AS c FROM posts ${whereSql}`).get(...args).c;
   const list = db
     .prepare(
-      `SELECT id, title, cover, tags, status, like_count, created_at, updated_at,
+      `SELECT id, title, cover, tags, status, is_pinned, like_count, created_at, updated_at,
         (SELECT COUNT(*) FROM comments c WHERE c.post_id = posts.id AND c.status = 1) AS comment_count
        FROM posts ${whereSql} ORDER BY created_at DESC LIMIT ? OFFSET ?`
     )
     .all(...args, pageSize, (page - 1) * pageSize)
-    .map((r) => ({ ...r, tags: JSON.parse(r.tags || '[]') }));
+    .map((r) => ({ ...r, tags: JSON.parse(r.tags || '[]'), is_pinned: !!r.is_pinned }));
   res.json({ list, total, page, pageSize });
 });
 
@@ -131,6 +131,14 @@ router.put('/posts/:id/status', (req, res) => {
   const info = db.prepare('UPDATE posts SET status = ?, updated_at = ? WHERE id = ?').run(status, now(), req.params.id);
   if (!info.changes) return res.status(404).json({ error: '文章不存在' });
   res.json({ ok: true, status });
+});
+
+// 置顶 / 取消置顶
+router.put('/posts/:id/pin', (req, res) => {
+  const isPinned = req.body.is_pinned === 1 || req.body.is_pinned === true ? 1 : 0;
+  const info = db.prepare('UPDATE posts SET is_pinned = ? WHERE id = ?').run(isPinned, req.params.id);
+  if (!info.changes) return res.status(404).json({ error: '文章不存在' });
+  res.json({ ok: true, is_pinned: !!isPinned });
 });
 
 router.delete('/posts/:id', (req, res) => {

@@ -53,6 +53,7 @@
             <th>标题</th>
             <th>标签</th>
             <th>状态</th>
+            <th>置顶</th>
             <th>评论</th>
             <th>点赞</th>
             <th>发布时间</th>
@@ -81,11 +82,17 @@
                 {{ p.status ? '已发布' : '草稿' }}
               </span>
             </td>
+            <td>
+              <span v-if="p.is_pinned" class="badge badge-pin">📌 置顶</span>
+            </td>
             <td>{{ p.comment_count }}</td>
             <td>{{ p.like_count }}</td>
             <td class="td-time">{{ formatDateTime(p.created_at) }}</td>
             <td class="td-time">{{ formatDateTime(p.updated_at) }}</td>
             <td class="td-ops">
+              <button class="btn btn-sm btn-plain" @click="togglePin(p)">
+                {{ p.is_pinned ? '取消置顶' : '置顶' }}
+              </button>
               <button class="btn btn-sm btn-plain" @click="toggleStatus(p)">
                 {{ p.status ? '下架' : '发布' }}
               </button>
@@ -95,7 +102,7 @@
             </td>
           </tr>
           <tr v-if="!list.length">
-            <td colspan="10" class="td-empty">{{ loading ? '加载中…' : '暂无文章' }}</td>
+            <td colspan="11" class="td-empty">{{ loading ? '加载中…' : '暂无文章' }}</td>
           </tr>
         </tbody>
       </table>
@@ -139,6 +146,7 @@ import {
   adminPosts,
   adminFilters,
   setPostStatus,
+  setPostPinned,
   deletePost,
   importFiles,
   exportPosts,
@@ -264,6 +272,12 @@ async function toggleStatus(p) {
   p.status = next;
 }
 
+async function togglePin(p) {
+  const next = !p.is_pinned;
+  await setPostPinned(p.id, next);
+  p.is_pinned = next;
+}
+
 async function remove(p) {
   if (!confirm(`确定删除《${p.title}》？该文章的所有评论也会被删除。`)) return;
   await deletePost(p.id);
@@ -378,6 +392,11 @@ onMounted(async () => {
 .badge-muted {
   background: var(--border-light);
   color: var(--text-light);
+}
+.badge-pin {
+  background: #fff6e0;
+  color: #d48806;
+  white-space: nowrap;
 }
 .tag-chip {
   display: inline-block;
