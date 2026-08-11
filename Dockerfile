@@ -19,9 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 COPY server/package*.json ./server/
-# 国内网络友好：npmmirror 源 + better-sqlite3 预编译二进制镜像（无效则走编译兜底）
+# 国内网络友好：npmmirror 源（better-sqlite3 预编译下载失败时自动走源码编译，工具链已装兜底）
 RUN npm config set registry https://registry.npmmirror.com \
-    && npm config set better_sqlite3_binary_host_mirror https://cdn.npmmirror.com/binaries/better-sqlite3 \
     && cd server && npm install --omit=dev --no-audit --no-fund
 
 COPY server/ ./server/
