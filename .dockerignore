@@ -1,0 +1,22 @@
+# 依赖（镜像内重新安装）
+node_modules/
+server/node_modules/
+frontend/node_modules/
+
+# 运行时数据（挂载卷持久化，不打包进镜像）
+server/data/
+uploads/
+
+# 前端构建产物（镜像内重新构建）
+frontend/dist/
+
+# 环境变量（含密钥，不进镜像）
+.env
+server/.env
+
+# 其他
+.git/
+.zcode/
+gui-test-screenshots/
+obsidian-plugin/main.js
+*.log

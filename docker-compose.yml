@@ -1,0 +1,22 @@
+services:
+  blog:
+    build: .
+    container_name: myblog
+    restart: unless-stopped
+    ports:
+      - "51021:51021"
+    env_file:
+      - ./server/.env
+    environment:
+      - NODE_ENV=production
+      - TZ=Asia/Shanghai
+    volumes:
+      # 数据持久化：数据库 + 上传的图片（备份这两个目录即可）
+      - ./server/data:/app/server/data
+      - ./uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:51021/api/site').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

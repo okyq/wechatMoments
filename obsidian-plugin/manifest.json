@@ -1,0 +1,9 @@
+{
+  "id": "blog-publisher",
+  "name": "Blog Publisher（朋友圈博客）",
+  "version": "0.1.0",
+  "minAppVersion": "1.4.0",
+  "description": "将笔记一键发布到朋友圈风格个人博客：自动上传内嵌图片、解析 frontmatter、支持按 slug 更新已有文章。",
+  "author": "myblog",
+  "isDesktopOnly": false
+}
